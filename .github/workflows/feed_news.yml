@@ -1,0 +1,38 @@
+name: News Feed
+
+on:
+  schedule:
+    - cron: '0 21 * * *'   # 6:00 AM KST
+    - cron: '0 9 * * *'    # 6:00 PM KST
+  workflow_dispatch:
+
+jobs:
+  run-news-feed:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: feed_news
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run News feed
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_NEWS_ID_Light: ${{ secrets.TELEGRAM_NEWS_ID_LIGHT }}
+          TELEGRAM_NEWS_ID_Atom: ${{ secrets.TELEGRAM_NEWS_ID_ATOM }}
+          MARKETAUX_API_KEY: ${{ secrets.MARKETAUX_API_KEY }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+        run: python main.py

@@ -1,0 +1,34 @@
+name: DART Feed
+
+on:
+  schedule:
+    - cron: '0 21 * * *'   # 6:00 AM KST
+    - cron: '0 9 * * *'    # 6:00 PM KST
+  workflow_dispatch:
+
+jobs:
+  run-dart-feed:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: feed_dart
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run DART feed
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_DART_ID_Light: ${{ secrets.TELEGRAM_DART_ID_LIGHT }}
+          TELEGRAM_DART_ID_Atom: ${{ secrets.TELEGRAM_DART_ID_ATOM }}
+        run: python main.py
