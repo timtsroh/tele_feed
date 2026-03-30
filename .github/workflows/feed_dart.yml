@@ -2,8 +2,7 @@ name: DART Feed
 
 on:
   schedule:
-    - cron: '0 21 * * *'   # 6:00 AM KST
-    - cron: '0 9 * * *'    # 6:00 PM KST
+    - cron: '0 20 * * *'   # 5:00 AM KST
   workflow_dispatch:
 
 jobs:

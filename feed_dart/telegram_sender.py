@@ -8,30 +8,34 @@ from dart_fetcher import DisclosureItem
 TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 
 
-def build_combined_message(company_disclosures: dict, title: str) -> str:
+def build_combined_message(company_disclosures: dict, title: str, date_str: str = "") -> str:
     """
     전체 회사 공시를 하나의 메시지로 조합.
     company_disclosures: {회사명: [DisclosureItem, ...]}
+    date_str: 헤더에 표시할 날짜 문자열 (예: '26.3.29토)
     """
-    lines = [title, ""]
+    header = f"{title} ({date_str})" if date_str else title
+    lines = [header, ""]
 
-    for company, items in company_disclosures.items():
-        if not items:
-            continue
+    if not company_disclosures:
+        lines.append(" - 공시없음 -")
+    else:
+        for company, items in company_disclosures.items():
+            if not items:
+                continue
 
-        date_str = f"{items[0].rcept_dt[:4]}-{items[0].rcept_dt[4:6]}-{items[0].rcept_dt[6:]}"
-        lines.append(f"<b>{company} ({date_str})</b>")
+            lines.append(f"<b>{company}</b>")
 
-        for item in items:
-            report_nm = item.report_nm
-            if item.rm:
-                report_nm += f" [{item.rm}]"
-            lines.append(report_nm)
-            lines.append(item.link)
-            lines.append(f"제출인: {item.flr_nm}")
+            for item in items:
+                report_nm = item.report_nm
+                if item.rm:
+                    report_nm += f" [{item.rm}]"
+                lines.append(report_nm)
+                lines.append(item.link)
+                lines.append(f"제출인: {item.flr_nm}")
+                lines.append("")
+
             lines.append("")
-
-        lines.append("")
 
     return "\n".join(lines).rstrip()
 

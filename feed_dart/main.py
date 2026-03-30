@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
@@ -11,6 +11,16 @@ from sheets_writer import write_disclosures_to_sheet
 
 
 KST = ZoneInfo("Asia/Seoul")
+KR_WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"]
+
+
+def get_yesterday_str() -> str:
+    yesterday = datetime.now(KST) - timedelta(days=1)
+    yy = yesterday.strftime("%y")
+    m = str(yesterday.month)
+    d = str(yesterday.day)
+    wd = KR_WEEKDAYS[yesterday.weekday()]
+    return f"'{yy}.{m}.{d}{wd}"
 
 DART_FEEDS = [
     {
@@ -64,16 +74,13 @@ def run_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, log_s
 
     # 3. 통합 메시지 전송
     print(f"\n[3] Telegram 전송 중... ({chat_id_env} / 총 {total_items}건)")
-    if not company_disclosures:
-        print("[INFO] 전송할 공시가 없어 스킵합니다.")
-        return
-
-    message = build_combined_message(company_disclosures, title)
+    date_str = get_yesterday_str()
+    message = build_combined_message(company_disclosures, title, date_str)
     success = send_message(message, chat_id_env)
     print(f"     {'전송 완료' if success else '전송 실패'}")
 
     # 4. 구글 시트 기록
-    if log_sheet:
+    if log_sheet and company_disclosures:
         print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
         write_disclosures_to_sheet(sheet_id, log_sheet, company_disclosures)
 
