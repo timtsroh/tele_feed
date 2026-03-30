@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 
 KST = ZoneInfo("Asia/Seoul")
 TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
+KST_DAYS = ["월", "화", "수", "목", "금", "토", "일"]
 
 
 def _format_pub_date(pub_date: str) -> str:
@@ -26,13 +27,20 @@ def _format_pub_date(pub_date: str) -> str:
         return pub_date
 
 
+def _format_run_time(dt: datetime) -> str:
+    """실행 시각을 YYYY-MM-DD요일 6am/6pm (최근 12시간 뉴스) 형식으로 반환."""
+    day_kr = KST_DAYS[dt.weekday()]
+    ampm = "6am" if dt.hour < 12 else "6pm"
+    return f"{dt.strftime('%Y-%m-%d')}{day_kr} {ampm} (최근 12시간 뉴스)"
+
+
 def build_combined_message(company_news: dict, title: str) -> str:
     """
     전체 회사 뉴스를 하나의 메시지로 조합.
     company_news: {회사명: [NewsItem, ...]}
     """
-    now_kst = datetime.now(KST).strftime("%Y-%m-%d %H:%M KST")
-    lines = [title, f"🕐 {now_kst}", ""]
+    now_kst = datetime.now(KST)
+    lines = [title, f"🕐 {_format_run_time(now_kst)}", ""]
 
     company_index = 1
     for company, items in company_news.items():
