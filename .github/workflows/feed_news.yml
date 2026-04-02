@@ -1,9 +1,6 @@
 name: News Feed
 
 on:
-  schedule:
-    - cron: '0 21 * * *'   # 6:00 AM KST
-    - cron: '0 9 * * *'    # 6:00 PM KST
   workflow_dispatch:
 
 jobs:
