@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 from sheets_reader import get_companies, get_companies_with_tickers
 import news_fetcher
-from telegram_sender import build_combined_message, send_message
+from telegram_sender import build_combined_message, build_empty_message, send_message
 from sheets_writer import write_news_to_sheet
 
 
@@ -63,15 +63,14 @@ def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str, search_
     # 3. 통합 메시지 전송
     print(f"\n[3] Telegram 전송 중... ({chat_id_env} / 총 {total_articles}건)")
     if not company_news:
-        print("[INFO] 전송할 뉴스가 없어 스킵합니다.")
-        return
-
-    message = build_combined_message(company_news, title)
+        message = build_empty_message(title)
+    else:
+        message = build_combined_message(company_news, title)
     success = send_message(message, chat_id_env)
     print(f"     {'전송 완료' if success else '전송 실패'}")
 
     # 4. 구글 시트 기록
-    if log_sheet:
+    if log_sheet and company_news:
         print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
         write_news_to_sheet(sheet_id, log_sheet, company_news)
 
@@ -110,15 +109,14 @@ def run_eng_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, l
 
     print(f"\n[3] Telegram 전송 중... ({chat_id_env} / 총 {total_articles}건)")
     if not company_news:
-        print("[INFO] 전송할 뉴스가 없어 스킵합니다.")
-        return
-
-    message = build_combined_message(company_news, title)
+        message = build_empty_message(title)
+    else:
+        message = build_combined_message(company_news, title)
     success = send_message(message, chat_id_env)
     print(f"     {'전송 완료' if success else '전송 실패'}")
 
     # 4. 구글 시트 기록
-    if log_sheet:
+    if log_sheet and company_news:
         print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
         write_news_to_sheet(sheet_id, log_sheet, company_news)
 

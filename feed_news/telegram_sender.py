@@ -63,6 +63,12 @@ def build_combined_message(company_news: dict, title: str) -> str:
     return "\n".join(lines).rstrip()
 
 
+def build_empty_message(title: str) -> str:
+    """수집된 뉴스가 없을 때 보낼 짧은 메시지."""
+    now_kst = datetime.now(KST)
+    return f"{title}\n🕐 {_format_run_time(now_kst)}\n\n뉴스 없음"
+
+
 def send_message(text: str, chat_id_env: str) -> bool:
     """Telegram 채널로 메시지 전송. chat_id_env: 사용할 환경변수 이름. 성공 시 True 반환."""
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
