@@ -24,13 +24,13 @@ def get_yesterday_str() -> str:
 
 DART_FEEDS = [
     {
-        "sheet_name": "Light",
+        "sheet_name": "Light1",
         "chat_id_env": "TELEGRAM_DART_ID_Light",
         "title": "📋 등대 포트폴리오 DART 공시피드",
         "log_sheet": "DART1",
     },
     {
-        "sheet_name": "Atom",
+        "sheet_name": "Atom1",
         "chat_id_env": "TELEGRAM_DART_ID_Atom",
         "title": "📋 김아톰 포트폴리오 DART 공시피드",
         "log_sheet": "DART2",
