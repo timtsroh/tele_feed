@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 from sheets_reader import get_companies, get_companies_with_tickers
 import news_fetcher
-from telegram_sender import build_combined_message, build_empty_message, send_message
+from telegram_sender import build_combined_message, build_empty_message, send_message, send_alert
 from sheets_writer import write_news_to_sheet
 
 
@@ -171,9 +171,14 @@ def main():
     elapsed = (end_time - start_time).seconds
     print(f"\n=== 전체 완료: {end_time.strftime('%Y-%m-%d %H:%M KST')} | 소요 {elapsed}초 ===")
 
-    # 회사 목록 로드 실패가 하나라도 있으면 워크플로우를 실패 처리 (CI 빨간불)
+    # 회사 목록 로드 실패가 하나라도 있으면 알림 전송 후 워크플로우를 실패 처리 (CI 빨간불)
     if failed_feeds:
         print(f"\n[FATAL] 회사 목록 로드 실패 시트: {', '.join(failed_feeds)} — 시트 탭 이름/권한을 확인하세요.")
+        send_alert(
+            "🚨 <b>뉴스 피드 실패</b>\n"
+            f"회사 목록 로드 실패 시트: {', '.join(failed_feeds)}\n"
+            "구글 시트 탭 이름 변경 또는 서비스계정 접근 권한을 확인하세요."
+        )
         sys.exit(1)
 
 

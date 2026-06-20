@@ -91,3 +91,12 @@ def send_message(text: str, chat_id_env: str) -> bool:
     except requests.RequestException as e:
         print(f"  [WARN] Telegram 전송 실패: {e}")
         return False
+
+
+def send_alert(text: str, chat_id_env: str = "TELEGRAM_ALERT_ID") -> bool:
+    """관리자 알림 채널로 실패 알림을 전송한다. 알림 자체가 실패해도 예외를 던지지 않는다."""
+    try:
+        return send_message(text, chat_id_env)
+    except Exception as e:
+        print(f"  [WARN] 알림 전송 실패({chat_id_env}): {e}")
+        return False

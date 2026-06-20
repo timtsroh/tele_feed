@@ -28,4 +28,5 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_DART_ID_Light: ${{ secrets.TELEGRAM_DART_ID_LIGHT }}
           TELEGRAM_DART_ID_Atom: ${{ secrets.TELEGRAM_DART_ID_ATOM }}
+          TELEGRAM_ALERT_ID: ${{ secrets.TELEGRAM_ALERT_ID }}
         run: python main.py

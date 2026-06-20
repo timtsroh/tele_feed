@@ -29,6 +29,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_NEWS_ID_Light: ${{ secrets.TELEGRAM_NEWS_ID_LIGHT }}
           TELEGRAM_NEWS_ID_Atom: ${{ secrets.TELEGRAM_NEWS_ID_ATOM }}
+          TELEGRAM_ALERT_ID: ${{ secrets.TELEGRAM_ALERT_ID }}
           MARKETAUX_API_KEY: ${{ secrets.MARKETAUX_API_KEY }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
