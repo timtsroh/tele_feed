@@ -35,14 +35,14 @@ def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str, search_
     try:
         companies = get_companies(sheet_id, sheet_name, col)
     except Exception as e:
-        print(f"[ERROR] 회사 목록 로드 실패: {e}")
-        return
+        print(f"[ERROR] 회사 목록 로드 실패: {sheet_name!r} 시트를 찾을 수 없거나 접근 불가 ({type(e).__name__}: {e})")
+        return False
 
     print(f"  → {len(companies)}개 회사 로드: {', '.join(companies)}")
 
     if not companies:
         print("[INFO] 회사 목록이 비어 있어 스킵합니다.")
-        return
+        return True
 
     # 2. 각 회사별 뉴스 검색
     print(f"\n[2] 뉴스 검색 중...")
@@ -74,6 +74,8 @@ def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str, search_
         print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
         write_news_to_sheet(sheet_id, log_sheet, company_news)
 
+    return True
+
 
 def run_eng_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, log_sheet: str = ""):
     print(f"\n{'='*50}")
@@ -84,13 +86,13 @@ def run_eng_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, l
     try:
         companies = get_companies_with_tickers(sheet_id, sheet_name)
     except Exception as e:
-        print(f"[ERROR] 회사 목록 로드 실패: {e}")
-        return
+        print(f"[ERROR] 회사 목록 로드 실패: {sheet_name!r} 시트를 찾을 수 없거나 접근 불가 ({type(e).__name__}: {e})")
+        return False
 
     print(f"  → {len(companies)}개 회사 로드: {', '.join(f'{n}({t})' for n, t in companies)}")
     if not companies:
         print("[INFO] 회사 목록이 비어 있어 스킵합니다.")
-        return
+        return True
 
     print(f"\n[2] 뉴스 검색 중...")
     seen_urls: set = set()
@@ -120,6 +122,8 @@ def run_eng_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, l
         print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
         write_news_to_sheet(sheet_id, log_sheet, company_news)
 
+    return True
+
 
 def main():
     load_dotenv()
@@ -129,12 +133,14 @@ def main():
     start_time = datetime.now(KST)
     print(f"=== 뉴스 피드 시작: {start_time.strftime('%Y-%m-%d %H:%M KST')} ===")
 
+    failed_feeds: list = []
+
     # 1단계: 한국 기업 뉴스 (Naver)
     print(f"\n{'#'*50}")
     print(f"# [1단계] 한국 기업 뉴스 — Naver")
     print(f"{'#'*50}")
     for feed in NAVER_FEEDS:
-        run_feed(
+        ok = run_feed(
             sheet_id=sheet_id,
             sheet_name=feed["sheet_name"],
             col=feed["col"],
@@ -143,23 +149,32 @@ def main():
             title=feed["title"],
             log_sheet=feed["log_sheet"],
         )
+        if not ok:
+            failed_feeds.append(feed["sheet_name"])
 
     # 2단계: 외국 기업 뉴스 (Marketaux + Alpha Vantage)
     print(f"\n{'#'*50}")
     print(f"# [2단계] 외국 기업 뉴스 — Marketaux + Alpha Vantage")
     print(f"{'#'*50}")
     for feed in NEWSAPI_FEEDS:
-        run_eng_feed(
+        ok = run_eng_feed(
             sheet_id=sheet_id,
             sheet_name=feed["sheet_name"],
             chat_id_env=feed["chat_id_env"],
             title=feed["title"],
             log_sheet=feed["log_sheet"],
         )
+        if not ok:
+            failed_feeds.append(feed["sheet_name"])
 
     end_time = datetime.now(KST)
     elapsed = (end_time - start_time).seconds
     print(f"\n=== 전체 완료: {end_time.strftime('%Y-%m-%d %H:%M KST')} | 소요 {elapsed}초 ===")
+
+    # 회사 목록 로드 실패가 하나라도 있으면 워크플로우를 실패 처리 (CI 빨간불)
+    if failed_feeds:
+        print(f"\n[FATAL] 회사 목록 로드 실패 시트: {', '.join(failed_feeds)} — 시트 탭 이름/권한을 확인하세요.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

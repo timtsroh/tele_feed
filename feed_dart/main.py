@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -48,13 +49,13 @@ def run_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, log_s
     try:
         companies = get_companies_with_corp_code(sheet_id, sheet_name)
     except Exception as e:
-        print(f"[ERROR] 회사 목록 로드 실패: {e}")
-        return
+        print(f"[ERROR] 회사 목록 로드 실패: {sheet_name!r} 시트를 찾을 수 없거나 접근 불가 ({type(e).__name__}: {e})")
+        return False
 
     print(f"  → {len(companies)}개 회사 로드: {', '.join(f'{n}({c})' for n, c in companies)}")
     if not companies:
         print("[INFO] 회사 목록이 비어 있어 스킵합니다.")
-        return
+        return True
 
     # 2. 각 회사별 공시 조회
     print(f"\n[2] DART 공시 조회 중...")
@@ -84,6 +85,8 @@ def run_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, log_s
         print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
         write_disclosures_to_sheet(sheet_id, log_sheet, company_disclosures)
 
+    return True
+
 
 def main():
     load_dotenv()
@@ -93,18 +96,26 @@ def main():
     start_time = datetime.now(KST)
     print(f"=== DART 공시 피드 시작: {start_time.strftime('%Y-%m-%d %H:%M KST')} ===")
 
+    failed_feeds: list = []
     for feed in DART_FEEDS:
-        run_feed(
+        ok = run_feed(
             sheet_id=sheet_id,
             sheet_name=feed["sheet_name"],
             chat_id_env=feed["chat_id_env"],
             title=feed["title"],
             log_sheet=feed["log_sheet"],
         )
+        if not ok:
+            failed_feeds.append(feed["sheet_name"])
 
     end_time = datetime.now(KST)
     elapsed = (end_time - start_time).seconds
     print(f"\n=== 전체 완료: {end_time.strftime('%Y-%m-%d %H:%M KST')} | 소요 {elapsed}초 ===")
+
+    # 회사 목록 로드 실패가 하나라도 있으면 워크플로우를 실패 처리 (CI 빨간불)
+    if failed_feeds:
+        print(f"\n[FATAL] 회사 목록 로드 실패 시트: {', '.join(failed_feeds)} — 시트 탭 이름/권한을 확인하세요.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
